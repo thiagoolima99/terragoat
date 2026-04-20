@@ -1,52 +1,17 @@
-# =============================================================================
-# Security Pipeline — Terragoat (Terraform / AWS IaC)
-# =============================================================================
-# This workflow calls the centralized reusable security workflow.
-# Repository: YOUR_GITHUB_USERNAME/devsecops-central
-#
-# Replace YOUR_GITHUB_USERNAME with your actual GitHub username in the `uses` field.
-# =============================================================================
-
 name: Security CI
 
 on:
   push:
     branches: [main, master, develop]
-    paths:
-      - "**.tf"
-      - "**.tfvars"
-      - "**.json"
-      - "**.yml"
-      - "**.yaml"
   pull_request:
     branches: [main, master, develop]
-    paths:
-      - "**.tf"
-      - "**.tfvars"
-  schedule:
-    # Full security scan every Monday at 07:00 UTC
-    - cron: "0 7 * * 1"
-  workflow_dispatch:
-    inputs:
-      fail-on-high:
-        description: "Fail pipeline on HIGH/CRITICAL findings"
-        type: boolean
-        default: true
 
 jobs:
   security:
-    name: Terraform/AWS IaC Security
-    uses: thiagoolima99/secCentralLayer/.github/workflows/reusable-terraform-security.yml@main
+    name: Terraform Security
+    uses: thiagoolima99/repo-central/.github/workflows/reusable-terraform-security.yml@main
     with:
-      terraform-directory: "."
-      fail-on-high: ${{ github.event_name != 'schedule' && (github.event.inputs.fail-on-high != 'false') }}
-      # Checkov checks to skip (accepted risks with documented justification)
-      # Format: "CKV_AWS_X,CKV_AWS_Y" — add entries after reviewing each finding
-      checkov-skip-checks: ""
-      # tfsec rules to exclude (accepted risks)
-      tfsec-exclude: ""
+      fail-on-high: true
     secrets: inherit
     permissions:
       contents: read
-      security-events: write  # Required for SARIF upload to GitHub Security tab
-      pull-requests: write    # Required for PR comments
